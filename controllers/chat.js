@@ -133,7 +133,17 @@ const getChats = async (req, res, next) => {
         consultant: consultantSendingMessage,
       });
 
-      return res.status(200).json(chats);
+      const chatsResponse = await Promise.all(
+        chats.map(async (chat) => {
+          const chatResponse = chat.toObject();
+          const user = await User.findOne({ _id: chat.user });
+          chatResponse.user = user.toObject();
+          delete chatResponse.user?.password;
+          return chatResponse;
+        })
+      );
+      
+      return res.status(200).json(chatsResponse);
     } else {
       const userId = req.userId;
       const chats = await Chat.find({
