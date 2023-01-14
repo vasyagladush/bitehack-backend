@@ -15,4 +15,34 @@ const calculate = async (req, res, next) => {
   });
 };
 
-export { calculate };
+const getUser = async (req, res, next) => {
+  try {
+    const userId = req.params.userId;
+    if (req.consultant) {
+      const user = await User.findOne({
+        _id: userId,
+      });
+      const userResponse = user.toObject();
+      delete userResponse.password();
+      return res.status(200).json(userResponse);
+    } else {
+      const accessTokenUserId = req.userId;
+      if (accessTokenUserId !== userId) {
+        res.status(403).json({
+          message:
+            "only consultants and the user itself can get the information of this user",
+        });
+      }
+      const user = await User.findOne({
+        _id: userId,
+      });
+      const userResponse = user.toObject();
+      delete userResponse.password();
+      return res.status(200).json(userResponse);
+    }
+  } catch (exception) {
+    res.status(500).json(exception);
+  }
+};
+
+export { calculate, getUser };
