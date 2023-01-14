@@ -20,16 +20,16 @@ const signup = async (req, res, next) => {
     });
     const userResponse = user.toObject();
     delete userResponse.password;
-    
+
     const token = await jwt.sign(
-      { id: user._id.toString() },
+      { id: user._id.toString(), isConsultant: false },
       process.env.SECRET_KEY
     );
     await user.save();
     res.status(201).json({
       message: "Succesfully created user",
       token: token,
-      user: userResponse
+      user: userResponse,
     });
   } catch (exception) {
     res.status(500).json(exception);
@@ -55,6 +55,7 @@ const login = async (req, res, next) => {
           const token = await jwt.sign(
             {
               id: consultant._id.toString(),
+              isConsultant: true,
             },
             process.env.SECRET_KEY
           );
@@ -71,6 +72,7 @@ const login = async (req, res, next) => {
       const token = await jwt.sign(
         {
           id: user._id.toString(),
+          isConsultant: false,
         },
         process.env.SECRET_KEY
       );
