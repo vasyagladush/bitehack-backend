@@ -2,7 +2,8 @@ import express from "express";
 import bodyParser from "body-parser";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-
+import socket from "./utils/socket.js";
+import authRouter from "./routes/auth.js";
 const app = express();
 
 dotenv.config();
@@ -20,12 +21,28 @@ app.use((req, res, next) => {//cors policy
     next();
   });
 
+app.use("/auth",authRouter);
+
+app.use((error,req,res,next)=>{//error handling
+    console.log(error);
+    const status = error.statusCode || 500;
+    const message = error.message;
+    res.status(status).json({
+      message: message
+    });
+});
+
+
 
 
 mongoose.connect(process.env.DB_URL,{useNewUrlParser: true,useUnifiedTopology:true})
 .then(result=>{
     console.log('Connected with database');
     const server=app.listen(process.env.PORT || 3000);
+    const socket1 = socket.init(server);
+    socket1.on('connect',socket=>{
+        console.log("connected");
+    }); 
 })
 .catch(err=>{
     console.log(err);
