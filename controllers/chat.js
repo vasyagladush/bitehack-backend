@@ -2,6 +2,7 @@ import User from "../models/user.js";
 import Consultant from "../models/consultant.js";
 import Chat from "../models/chat.js";
 import socket from "../utils/socket.js";
+import { ChatStatus } from "../models/chat.js";
 
 const sendMessage = async (req, res, next) => {
   try {
@@ -132,21 +133,45 @@ const getChats = async (req, res, next) => {
         consultant: consultantSendingMessage,
       });
 
-      return res.status(200).json({
-        chats,
-      });
+      return res.status(200).json(chats);
     } else {
       const userId = req.userId;
       const chats = await Chat.find({
         user: userId,
       });
-      return res.status(200).json({
-        chats,
-      });
+      return res.status(200).json(chats);
     }
   } catch (exception) {
     res.status(500).json(exception);
   }
 };
 
-export { sendMessage, getChats };
+const updateChat = async (req, res, next) => {
+  try {
+    const chatId = req.params.chatId;
+    const newStatus = req.body.status;
+
+    if (Object.values(ChatStatus).indexOf(newStatus) <= -1) {
+      return res.status(500).json({
+        message: `'status' should be one of ${Object.values(ChatStatus)}`,
+      });
+    }
+
+    const chat = await Chat.findOneAndUpdate(
+      {
+        _id: chatId,
+      },
+      { status: newStatus }
+    );
+
+    const updatedChat = await Chat.findOne({
+      _id: chatId,
+    });
+
+    return res.status(200).json(updatedChat);
+  } catch (exception) {
+    res.status(500).json(exception);
+  }
+};
+
+export { sendMessage, getChats, updateChat };
