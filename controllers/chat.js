@@ -4,122 +4,149 @@ import Chat from "../models/chat.js";
 import socket from "../utils/socket.js";
 
 const sendMessage = async (req, res, next) => {
-  if (req.consultant) {
-    const consultantSendingMessage = req.userId;
-    const userId = req.body.personId;
-    const message = req.body.message;
-    const chat = await Chat.findOne({
-      consultant: consultantSendingMessage,
-      user: userId
-    }); 
-    if(!chat){
-      return res.status(500).json({ 
-        message: "You don't have chat with this user!"
-      }); 
-    }
-    chat.messages.push({
-      sender: consultantSendingMessage, 
-      message: message
-    });
-    
-    const chatInDb = await chat.save();
-    const user = await User.findOne({ _id: userId }).select(
-      "fullname"
-    );
-    const consultant = await Consultant.findOne({ _id: consultantSendingMessage }).select(
-      "fullname"
-    );
-    
-    const socket1 = socket.getIo();
-    socket1.emit('message',{
-      _id: chatInDb.messages[chatInDb.messages.length - 1]._id,
-      user: user,
-      message: message,
-      consultant: consultant,
-      userSender: false
-    });
-    return res.status(200).json({
-      _id: chatInDb.messages[chatInDb.messages.length - 1]._id,
-      user: user,
-      message: message,
-      consultant: consultant,
-      userSender: false
-    });
-    } else {
-    const userSendingMessage = req.userId;
-    const consultantId = req.body.personId;
-    const message = req.body.message;
-    let chat = await Chat.findOne({
-      user: userSendingMessage,
-      consultant: consultantId,
-    });
-    if (!chat) {
-      chat = new Chat({
-        user: userSendingMessage,
-        consultant: consultantId,
-        messages: [
-          {
-            sender: userSendingMessage,
-            message: message,
-          },
-        ],
+  try {
+    if (req.consultant) {
+      const consultantSendingMessage = req.userId;
+      const userId = req.body.personId;
+      const message = req.body.message;
+      const chat = await Chat.findOne({
+        consultant: consultantSendingMessage,
+        user: userId,
       });
+      if (!chat) {
+        return res.status(500).json({
+          message: "You don't have chat with this user!",
+        });
+      }
+      chat.messages.push({
+        sender: consultantSendingMessage,
+        message: message,
+      });
+
       const chatInDb = await chat.save();
-      const socket1 = socket.getIo();
-      const user = await User.findOne({
-        _id: userSendingMessage,
+      const user = await User.findOne({ _id: userId }).select("fullname");
+      const consultant = await Consultant.findOne({
+        _id: consultantSendingMessage,
       }).select("fullname");
 
-      const consultant = await Consultant.findOne({
-        _id: consultantId,
-      });
-
-      socket1.emit("message", {
-        chatId: chat._id,
-        user: user,
-        message: message,
-        consultant: consultant,
-        userSender: true,
-      });
-
-      return res.status(200).json({
-        _id: chatInDb.messages[chatInDb.messages.length - 1]._id,
-        user: user,
-        message: message,
-        consultant: consultant,
-        userSender: true
-      });
-    } else {
-      chat.messages.push({
-        sender: userSendingMessage,
-        message: message,
-      });
-
-      const chatInDb = await chat.save();
-      const user = await User.findOne({ _id: userSendingMessage }).select(
-        "fullname"
-      );
-      const consultant = await Consultant.findOne({ _id: consultantId }).select(
-        "fullname"
-      );
       const socket1 = socket.getIo();
       socket1.emit("message", {
         _id: chatInDb.messages[chatInDb.messages.length - 1]._id,
         user: user,
         message: message,
         consultant: consultant,
-        userSender: true
+        userSender: false,
       });
-
       return res.status(200).json({
         _id: chatInDb.messages[chatInDb.messages.length - 1]._id,
         user: user,
         message: message,
         consultant: consultant,
-        userSender: true
+        userSender: false,
       });
+    } else {
+      const userSendingMessage = req.userId;
+      const consultantId = req.body.personId;
+      const message = req.body.message;
+      let chat = await Chat.findOne({
+        user: userSendingMessage,
+        consultant: consultantId,
+      });
+      if (!chat) {
+        chat = new Chat({
+          user: userSendingMessage,
+          consultant: consultantId,
+          messages: [
+            {
+              sender: userSendingMessage,
+              message: message,
+            },
+          ],
+        });
+        const chatInDb = await chat.save();
+        const socket1 = socket.getIo();
+        const user = await User.findOne({
+          _id: userSendingMessage,
+        }).select("fullname");
+
+        const consultant = await Consultant.findOne({
+          _id: consultantId,
+        });
+
+        socket1.emit("message", {
+          chatId: chat._id,
+          user: user,
+          message: message,
+          consultant: consultant,
+          userSender: true,
+        });
+
+        return res.status(200).json({
+          _id: chatInDb.messages[chatInDb.messages.length - 1]._id,
+          user: user,
+          message: message,
+          consultant: consultant,
+          userSender: true,
+        });
+      } else {
+        chat.messages.push({
+          sender: userSendingMessage,
+          message: message,
+        });
+
+        const chatInDb = await chat.save();
+        const user = await User.findOne({ _id: userSendingMessage }).select(
+          "fullname"
+        );
+        const consultant = await Consultant.findOne({
+          _id: consultantId,
+        }).select("fullname");
+        const socket1 = socket.getIo();
+        socket1.emit("message", {
+          _id: chatInDb.messages[chatInDb.messages.length - 1]._id,
+          user: user,
+          message: message,
+          consultant: consultant,
+          userSender: true,
+        });
+
+        return res.status(200).json({
+          _id: chatInDb.messages[chatInDb.messages.length - 1]._id,
+          user: user,
+          message: message,
+          consultant: consultant,
+          userSender: true,
+        });
+      }
     }
+  } catch (exception) {
+    res.status(500).json(exception);
   }
 };
 
-export {sendMessage};
+const getChats = async (req, res, next) => {
+  try {
+    if (req.consultant) {
+      const consultantSendingMessage = req.userId;
+      const chats = await Chat.find({
+        consultant: consultantSendingMessage,
+      });
+
+      return res.status(200).json({
+        chats,
+      });
+    } else {
+      const userId = req.userId;
+      const chats = await Chat.find({
+        user: userId,
+      });
+      return res.status(200).json({
+        chats,
+      });
+    }
+  } catch (exception) {
+    res.status(500).json(exception);
+  }
+};
+
+export { sendMessage, getChats };
