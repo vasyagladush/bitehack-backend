@@ -4,16 +4,50 @@ import Chat from "../models/chat.js";
 import socket from "../utils/socket.js";
 
 const sendMessage = async (req, res, next) => {
-  // to do
-//   console.log(req.consultant);
   if (req.consultant) {
+    const consultantSendingMessage = req.userId;
+    const userId = req.body.personId;
+    const message = req.body.message;
+    const chat = await Chat.findOne({
+      consultant: consultantSendingMessage,
+      user: userId
+    }); 
+    if(!chat){
+      return res.status(500).json({ 
+        message: "You don't have chat with this user!"
+      }); 
+    }
+    chat.messages.push({
+      sender: consultantSendingMessage, 
+      message: message
+    });
     
-    // return res.status(200).json({
-    //   message: "Consultant shit",
-    // });
-  } else {
+    const chatInDb = await chat.save();
+    const user = await User.findOne({ _id: userId }).select(
+      "fullname"
+    );
+    const consultant = await Consultant.findOne({ _id: consultantSendingMessage }).select(
+      "fullname"
+    );
+    
+    const socket1 = socket.getIo();
+    socket1.emit('message',{
+      _id: chatInDb.messages[chatInDb.messages.length - 1]._id,
+      user: user,
+      message: message,
+      consultant: consultant,
+      userSender: false
+    });
+    return res.status(200).json({
+      _id: chatInDb.messages[chatInDb.messages.length - 1]._id,
+      user: user,
+      message: message,
+      consultant: consultant,
+      userSender: false
+    });
+    } else {
     const userSendingMessage = req.userId;
-    const consultantId = req.body.consultantId;
+    const consultantId = req.body.personId;
     const message = req.body.message;
     let chat = await Chat.findOne({
       user: userSendingMessage,
@@ -30,7 +64,7 @@ const sendMessage = async (req, res, next) => {
           },
         ],
       });
-      await chat.save();
+      const chatInDb = await chat.save();
       const socket1 = socket.getIo();
       const user = await User.findOne({
         _id: userSendingMessage,
@@ -45,7 +79,7 @@ const sendMessage = async (req, res, next) => {
         user: user,
         message: message,
         consultant: consultant,
-        userfirst: true,
+        userSender: true,
       });
 
       return res.status(200).json({
@@ -53,6 +87,7 @@ const sendMessage = async (req, res, next) => {
         user: user,
         message: message,
         consultant: consultant,
+        userSender: true
       });
     } else {
       chat.messages.push({
@@ -73,6 +108,7 @@ const sendMessage = async (req, res, next) => {
         user: user,
         message: message,
         consultant: consultant,
+        userSender: true
       });
 
       return res.status(200).json({
@@ -80,6 +116,7 @@ const sendMessage = async (req, res, next) => {
         user: user,
         message: message,
         consultant: consultant,
+        userSender: true
       });
     }
   }

@@ -18,6 +18,9 @@ const signup = async (req, res, next) => {
       ...req.body,
       password: await bcrypt.hash(req.body.password, 12),
     });
+    const userResponse = user.toObject();
+    delete userResponse.password;
+    
     const token = await jwt.sign(
       { id: user._id.toString() },
       process.env.SECRET_KEY
@@ -26,6 +29,7 @@ const signup = async (req, res, next) => {
     res.status(201).json({
       message: "Succesfully created user",
       token: token,
+      user: userResponse
     });
   } catch (exception) {
     res.status(500).json(exception);
@@ -70,9 +74,13 @@ const login = async (req, res, next) => {
         },
         process.env.SECRET_KEY
       );
+      const userResponse = user.toObject();
+      delete userResponse.password;
+      console.log(userResponse);
       res.status(200).json({
         message: "Logged",
         token: token,
+        user: userResponse,
       });
     } else {
       const error = new Error();

@@ -6,6 +6,7 @@ import socket from "./utils/socket.js";
 import authRouter from "./routes/auth.js";
 import userRouter from "./routes/user.js";
 import chatRouter from "./routes/chat.js";
+import chatAiRouter from "./routes/chatAi.js";
 const app = express();
 
 dotenv.config();
@@ -32,6 +33,8 @@ app.use("/auth", authRouter);
 app.use("/user", userRouter);
 
 app.use("/chat", chatRouter);
+
+app.use("/chatAi",chatAiRouter); 
 
 app.use((error, req, res, next) => {
   //error handling
