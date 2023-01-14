@@ -5,11 +5,12 @@ import socket from "../utils/socket.js";
 
 const sendMessage = async (req, res, next) => {
   // to do
-  console.log(req.consultant);
+//   console.log(req.consultant);
   if (req.consultant) {
-    return res.status(200).json({
-      message: "Consultant shit",
-    });
+    
+    // return res.status(200).json({
+    //   message: "Consultant shit",
+    // });
   } else {
     const userSendingMessage = req.userId;
     const consultantId = req.body.consultantId;
@@ -24,7 +25,7 @@ const sendMessage = async (req, res, next) => {
         consultant: consultantId,
         messages: [
           {
-            person: userSendingMessage,
+            sender: userSendingMessage,
             message: message,
           },
         ],
@@ -48,11 +49,14 @@ const sendMessage = async (req, res, next) => {
       });
 
       return res.status(200).json({
-        message: "Created Chat and send message",
+        _id: chatInDb.messages[chatInDb.messages.length - 1]._id,
+        user: user,
+        message: message,
+        consultant: consultant,
       });
     } else {
       chat.messages.push({
-        person: userSendingMessage,
+        sender: userSendingMessage,
         message: message,
       });
 
@@ -80,3 +84,5 @@ const sendMessage = async (req, res, next) => {
     }
   }
 };
+
+export {sendMessage};

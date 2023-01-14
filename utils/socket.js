@@ -1,8 +1,8 @@
 import { Server } from "socket.io";
-
+let io;
 export default {
   init: (server) => {
-    const io = new Server(server);
+    io = new Server(server);
     return io;
   },
   getIo: () => {
