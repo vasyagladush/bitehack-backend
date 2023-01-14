@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import User from "../models/user.js";
+import Consultant from "../models/consultant.js";
 
 const signup =async (req,res,next)=>{
     let existingUser = await User.findOne({email: req.body.email });
@@ -24,23 +25,36 @@ const signup =async (req,res,next)=>{
 const login = async (req,res,next)=>{ 
     const email = req.body.email;
     const password = req.body.password;
-    const user = await User.findOne({email: email});
+    let user = await User.findOne({email: email});
     if (!user)
     {
-        const error = new Error();
-        error.message = 'Account not exist';
-        error.statusCode = 400;
-        next(error);
-        return error;
+        const consultant = await Consultant.findOne({login: email});
+        if(!consultant){
+            const error = new Error();
+            error.message = 'Account not exist';
+            error.statusCode = 400;
+            next(error);
+            return error;
+        }
+        else{ // should be hashing or something when we login but for now i leave it
+            if(password == consultant.password){
+                const token = await jwt.sign({
+                    id: consultant._id.toString()
+                },process.env.SECRET_KEY);
+                res.status(200).json({
+                    message: "Logged as an Consultant",
+                    token: token 
+                });    
+            }
+        }
     }
+    
     const logged = await bcrypt.compare(password,user.password);
     if(logged)
     {
         const token = await jwt.sign({
             id: user._id.toString()
-        },process.env.SECRET_KEY,{
-            expiresIn: '1h'
-        });
+        },process.env.SECRET_KEY);
         res.status(200).json({
             message: 'Logged',
             token: token

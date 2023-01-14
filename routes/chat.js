@@ -9,4 +9,4 @@ router.get("/chat",isAuth);
 
 router.get("/consultants",isAuth);
 
-export {router};
+export default router;

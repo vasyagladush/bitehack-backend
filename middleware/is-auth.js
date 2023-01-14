@@ -1,8 +1,10 @@
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import User from "../models/user.js";
+import Consultant from "../models/consultant.js";
 dotenv.config();
 
-const isAuth = ()=>{
+const isAuth =async (req,res,next)=>{
     const authtoken = req.get('Authorization');
     if(!authtoken){
         const error = new Error();
@@ -24,6 +26,12 @@ const isAuth = ()=>{
         error.message = "Not authenticated!";
         error.statusCode = 401; 
         throw error; 
+    } 
+    const user = await User.findOne({_id: decodeToken.id});
+    const consultant = await Consultant.findOne({_id: decodeToken.id});
+    console.log(user,consultant);
+    if(consultant){
+        req.consultant = true;
     }
     req.userId = decodeToken.id;// setting req.userId with this decode token userId
     next();

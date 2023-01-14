@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import socket from "./utils/socket.js";
 import authRouter from "./routes/auth.js";
+import userRouter from "./routes/user.js";
 const app = express();
 
 dotenv.config();
@@ -22,6 +23,8 @@ app.use((req, res, next) => {//cors policy
   });
 
 app.use("/auth",authRouter);
+
+app.use("/user",userRouter);
 
 app.use((error,req,res,next)=>{//error handling
     console.log(error);
