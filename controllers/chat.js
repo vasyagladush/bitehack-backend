@@ -156,6 +156,47 @@ const getChats = async (req, res, next) => {
   }
 };
 
+const getInfoAboutMe = async(req,res,next)=> {
+  try{
+    const userId = req.userId;
+    const isConsultant = req.consultant;
+    if(isConsultant){
+      const consultant = await Consultant.findOne({_id: userId});
+      const consultantToSend = consultant.toObject();
+      delete consultantToSend.password;
+      return res.status(200).json(consultantToSend);
+    }
+    else{
+      const user = await User.findOne({_id: userId});
+      const userToSend = user.toObject();
+      delete userToSend.password;
+      return res.status(200).json(userToSend);
+    }
+  }
+  catch(err){
+    console.log(err);
+  }
+};
+
+const getConsultantChat = async(req,res,next)=>{
+  const consultantId = req.params.consultantId;
+  const userId = req.userId; 
+
+  const chat = await Chat.findOne({consultant: consultantId,user: userId});
+  return res.status(200).json({
+    ...chat?.toObject()
+  });
+};
+
+const getUserChat = async(req,res,next)=> { 
+  const userId = req.params.userId;
+  const consultantId = req.userId;
+  const chat = await Chat.findOne({consultant: consultantId,user: userId});
+  return res.status(200).json({ 
+    ...chat?.toObject()
+  })
+};
+
 const updateChat = async (req, res, next) => {
   try {
     const chatId = req.params.chatId;
@@ -184,4 +225,4 @@ const updateChat = async (req, res, next) => {
   }
 };
 
-export { sendMessage, getChats, updateChat };
+export { sendMessage, getChats, updateChat,getInfoAboutMe,getConsultantChat, getUserChat };

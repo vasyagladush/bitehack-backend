@@ -27,7 +27,7 @@ const isAuth = async (req, res, next) => {
       error.statusCode = 401;
       throw error;
     }
-    const user = await User.findOne({ _id: decodeToken.id });
+    const user = await User.findOne({ _id: decodeToken.id }); // i know i know it is really not efficient
     const consultant = await Consultant.findOne({ _id: decodeToken.id });
     if (consultant) {
       req.consultant = true;

@@ -6,14 +6,6 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const api = new ChatGPTAPIBrowser({
-    email: process.env.OPENAI_EMAIL,
-    password: process.env.OPENAI_PASSWORD
-  });
-
-
-
-
 const sendMessage = async(req,res,next)=>{ 
     await api.initSession();
     const result = await api.sendMessage("Hello World!");
