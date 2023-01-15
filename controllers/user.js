@@ -37,7 +37,7 @@ const getUser = async (req, res, next) => {
         _id: userId,
       });
       const userResponse = user.toObject();
-      delete userResponse.password();
+      delete userResponse.password;
       return res.status(200).json(userResponse);
     }
   } catch (exception) {

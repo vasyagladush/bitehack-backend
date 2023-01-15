@@ -78,7 +78,6 @@ const login = async (req, res, next) => {
       );
       const userResponse = user.toObject();
       delete userResponse.password;
-      console.log(userResponse);
       res.status(200).json({
         message: "Logged",
         token: token,
